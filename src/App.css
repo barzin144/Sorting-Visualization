@@ -1,15 +1,6 @@
-body {
-	background-color: #25273c;
-}
-.header {
-	margin-bottom: 0.25rem;
-}
 .App {
 	text-align: center;
 	margin-top: 1rem;
-}
-.btn {
-	margin: 0.125rem;
 }
 
 .chartContainer {

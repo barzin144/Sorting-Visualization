@@ -5,4 +5,5 @@ export interface State {
     iteration: number;
     sorted: number;
     started: boolean;
+    speed: number;
 }

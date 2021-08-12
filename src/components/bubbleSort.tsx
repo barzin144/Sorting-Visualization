@@ -1,16 +1,37 @@
+import { Button, Slider, Typography } from '@material-ui/core';
+import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 import React from 'react';
 import { Action } from '../interfaces/action';
 import { State } from '../interfaces/bubbleSort/bubbleSortInterface';
 import { Item } from '../interfaces/item';
 import { Props } from '../interfaces/props';
 
+const useStyles = makeStyles((theme: Theme) =>
+    createStyles({
+        root: {          
+            display: "flex",
+            justifyContent: "space-between",
+            '& .speedContainer':{
+                width:300
+            },
+            '& > *': {
+                textTransform: 'none',
+                margin: theme.spacing(1)
+            },
+        },
+    }),
+);
+
 const init = (initArray: Item[]) => {
-    return { array: initArray, iteration: 0, sorted: 0, started: false } as State;
+    return { array: initArray, iteration: 0, sorted: 0, started: false, speed:50 } as State;
 }
 const reducer = (state: State, action: Action): State => {
     switch (action.type) {
         case 'setArray': {
             return { ...state, array: action.payload.array, iteration: 0, sorted: 0 };
+        }
+        case 'setSpeed': {
+            return { ...state, speed: action.payload };
         }
         case 'swapeItems': {
             const array = [...state.array];
@@ -55,9 +76,12 @@ const BubbleSort = (props: Props) => {
 
     React.useEffect(() => {
         if (state.started) {
-            globalInterval.current = setTimeout(sort, 100);
+            if (!!globalInterval.current) {
+                clearTimeout(globalInterval.current);
+            }
+            globalInterval.current = setTimeout(sort, 150 - state.speed);
         }
-    }, [state.iteration, state.started]);
+    }, [state.iteration, state.started, state.speed]);
 
     React.useEffect(() => {
         dispatch({ type: 'setArray', payload: { array: props.items } });
@@ -99,12 +123,31 @@ const BubbleSort = (props: Props) => {
     const generateRandomArray = () => {
         dispatch({ type: "setArray", payload: { array: Array.from({ length: 30 }, () => ({ value: Math.floor(Math.random() * 300) + 10, status: "unsorted" })) } });
     }
+    const changeSpeed = (event: React.ChangeEvent<{}>, value: number | number[]) => {
+        dispatch({ type: 'setSpeed', payload: value });
+        
+    }
+    const classes = useStyles();
+
     return (
         <>
-            <section className="header">
-                <button className="btn btn-primary btn-sm" disabled={state.started} onClick={generateRandomArray}>Generate Random Array</button>
-                {!state.started && <button className="btn btn-secondary btn-sm" onClick={start}>Start</button>}
-                {state.started && <button className="btn btn-secondary btn-sm" onClick={pause}>Pause</button>}
+            <section className={classes.root}>
+                <Button variant="contained" size="small" color="primary" disabled={state.started} onClick={generateRandomArray}>Generate Random Array</Button>
+                {!state.started && <Button size="small" variant="contained" onClick={start}>Start</Button>}
+                {state.started && <Button size="small" variant="contained" onClick={pause}>Pause</Button>}
+                <div className="speedContainer">
+                    <Typography>
+                        Speed
+                    </Typography>
+                    <Slider
+                        defaultValue={50}
+                        onChangeCommitted={changeSpeed}
+                        min={10}
+                        max={100}
+                        valueLabelDisplay="auto"
+                        step={10}
+                        marks />
+                </div>
             </section>
             <section className="chartContainer">
                 {
