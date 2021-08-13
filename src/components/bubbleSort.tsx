@@ -1,34 +1,20 @@
-import { Button, Slider, Typography } from '@material-ui/core';
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
+import { Button, Slider, Typography, Grid, Box } from '@material-ui/core';
 import React from 'react';
 import { Action } from '../interfaces/action';
 import { State } from '../interfaces/bubbleSort/bubbleSortInterface';
 import { Item } from '../interfaces/item';
 import { Props } from '../interfaces/props';
 
-const useStyles = makeStyles((theme: Theme) =>
-    createStyles({
-        root: {          
-            display: "flex",
-            justifyContent: "space-between",
-            '& .speedContainer':{
-                width:300
-            },
-            '& > *': {
-                textTransform: 'none',
-                margin: theme.spacing(1)
-            },
-        },
-    }),
-);
-
 const init = (initArray: Item[]) => {
-    return { array: initArray, iteration: 0, sorted: 0, started: false, speed:50 } as State;
+    return { array: initArray, iteration: 0, sorted: 0, started: false, speed: 50, arrayCount: 30 } as State;
 }
 const reducer = (state: State, action: Action): State => {
     switch (action.type) {
         case 'setArray': {
             return { ...state, array: action.payload.array, iteration: 0, sorted: 0 };
+        }
+        case 'setArrayCount': {
+            return { ...state, array: action.payload.array, arrayCount: action.payload.arrayCount, iteration: 0, sorted: 0 };
         }
         case 'setSpeed': {
             return { ...state, speed: action.payload };
@@ -119,36 +105,71 @@ const BubbleSort = (props: Props) => {
         else {
             dispatch({ type: 'setIterationAndSorted', payload: { iteration: 0, sorted: sorted + 1, sortedIndex: iteration } });
         }
+
+        if (sorted + 1 === array.length) {
+            pause();
+        }
     }
+
     const generateRandomArray = () => {
-        dispatch({ type: "setArray", payload: { array: Array.from({ length: 30 }, () => ({ value: Math.floor(Math.random() * 300) + 10, status: "unsorted" })) } });
+        dispatch({ type: "setArray", payload: { array: Array.from({ length: state.arrayCount }, () => ({ value: Math.floor(Math.random() * 300) + 10, status: "unsorted" })) } });
     }
+
+    const changeArray = (event: React.ChangeEvent<{}>, value: number | number[]) => {
+        const arrayCount: number = typeof (value) === 'number' ? value : value[0];
+        dispatch({ type: "setArrayCount", payload: { array: Array.from({ length: arrayCount }, () => ({ value: Math.floor(Math.random() * 300) + 10, status: "unsorted" })), arrayCount: arrayCount } });
+    }
+
     const changeSpeed = (event: React.ChangeEvent<{}>, value: number | number[]) => {
         dispatch({ type: 'setSpeed', payload: value });
-        
+
     }
-    const classes = useStyles();
 
     return (
         <>
-            <section className={classes.root}>
-                <Button variant="contained" size="small" color="primary" disabled={state.started} onClick={generateRandomArray}>Generate Random Array</Button>
-                {!state.started && <Button size="small" variant="contained" onClick={start}>Start</Button>}
-                {state.started && <Button size="small" variant="contained" onClick={pause}>Pause</Button>}
-                <div className="speedContainer">
-                    <Typography>
-                        Speed
-                    </Typography>
-                    <Slider
-                        defaultValue={50}
-                        onChangeCommitted={changeSpeed}
-                        min={10}
-                        max={100}
-                        valueLabelDisplay="auto"
-                        step={10}
-                        marks />
-                </div>
-            </section>
+            <Grid container justifyContent="center" alignItems="center">
+                <Grid item xs={12} sm={6}>
+                    <Grid item xs={12} sm={6}>
+                    <Box component="div" mb={1}>
+                        <Button variant="contained" size="small" color="primary" disabled={state.started} onClick={generateRandomArray}>Random Array</Button>
+                    </Box>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                    <Box component="div" mb={1}>
+                        {!state.started && <Button size="small" variant="contained" onClick={start}>Start</Button>}
+                        {state.started && <Button size="small" variant="contained" onClick={pause}>Pause</Button>}
+                        </Box>
+                    </Grid>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                    <Box component="div" mb={1}>
+                        <Typography>
+                            Speed
+                        </Typography>
+                        <Slider
+                            defaultValue={50}
+                            onChangeCommitted={changeSpeed}
+                            min={10}
+                            max={100}
+                            valueLabelDisplay="auto"
+                            step={10}
+                            marks />
+                    </Box>
+                    <Box component="div" mb={1}>
+                        <Typography>
+                            Array
+                        </Typography>
+                        <Slider
+                            defaultValue={30}
+                            onChangeCommitted={changeArray}
+                            min={10}
+                            max={100}
+                            valueLabelDisplay="auto"
+                            step={10}
+                            marks />
+                    </Box>
+                </Grid>
+            </Grid>
             <section className="chartContainer">
                 {
                     state.array.map((item, index) => {

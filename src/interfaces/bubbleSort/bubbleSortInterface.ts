@@ -6,4 +6,5 @@ export interface State {
     sorted: number;
     started: boolean;
     speed: number;
+    arrayCount: number;
 }
